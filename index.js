@@ -26,6 +26,7 @@ async function run() {
     await client.connect();
 
     const coffeeCollection = client.db('coffeeDB5').collection('coffee');
+    const userCollection = client.db('coffeeDB5').collection('user')
 
     // 2. CRUD = R for read or get
     app.get('/coffee', async(req, res) => {
@@ -73,6 +74,38 @@ async function run() {
         const query = {_id: new ObjectId(id)};
         const result = await coffeeCollection.deleteOne(query);
         res.send(result)
+    })
+    // 7. Read user data from mongodb database
+    app.get('/user', async(req, res) => {
+      const cursor = userCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+    // 6. send user data collection to mongodb database
+    app.post('/user', async(req, res) => {
+        const user = req.body;
+        console.log(user);
+        const result = await userCollection.insertOne(user);
+        res.send(result);
+    })
+    // 9. patch
+    app.patch('/user', async(req, res) => {
+        const user = req.body;
+        const filter = { email: user.email };
+        const updateDoc = {
+          $set: {
+            lastLoggedAt: user.lastLoggedAt
+          }
+        }
+        const result = await userCollection.updateOne(filter, updateDoc);
+        res.send(result)
+    })
+    // 8. delete user from database
+    app.delete('/user/:id', async(req, res) => {
+        const id = req.params.id;
+        const query = { _id: new ObjectId(id)};
+        const result = await userCollection.deleteOne(query);
+        res.send(result);
     })
 
     // Send a ping to confirm a successful connection
